@@ -1,6 +1,6 @@
 ---
 name: agent-teams
-description: Agent Teams enables multiple Claude instances to collaborate on complex tasks. Suitable for: parallel research reviews, multi-perspective code reviews, competitive hypothesis debugging, cross-layer feature development. Use this skill when tasks can be decomposed into independent subtasks, require multiple roles to explore simultaneously, or need discussion and coordination between teammates.
+description: Agent Teams enables multiple Claude instances to collaborate on complex tasks. Use cases include: parallel research reviews, multi-perspective code reviews, competing hypothesis debugging, and cross-layer feature development. Use this skill when tasks can be decomposed into independent subtasks, require multiple roles to explore simultaneously, or need discussion and collaboration between teammates.
 ---
 
 # Agent Teams
@@ -22,7 +22,7 @@ description: Agent Teams enables multiple Claude instances to collaborate on com
 
 > **The only mandatory rule: Must have a Reviewer role responsible for quality control.**
 
-Everything else is at the Leader's (your) discretion based on the task.
+Everything else is decided autonomously by the Leader (you) based on the task.
 
 ---
 
@@ -31,10 +31,10 @@ Everything else is at the Leader's (your) discretion based on the task.
 ### 1. Do You Need a Team?
 
 | Don't Need | Need |
-|--------|------|
-| Can be completed solo | Need to explore multiple directions in parallel |
-| Sequential execution is more efficient | Need multiple professional perspectives simultaneously |
-| Simple, clear task | Need discussion/challenges between teammates |
+|------------|------|
+| Can be completed by one person | Requires parallel exploration of multiple directions |
+| Sequential execution is more efficient | Requires multiple professional perspectives simultaneously |
+| Simple, clear task | Requires discussion/challenge between teammates |
 
 ### 2. What Roles Are Needed?
 
@@ -44,18 +44,18 @@ Everything else is at the Leader's (your) discretion based on the task.
 - Researcher: Exploration, research, document analysis
 - Developer: Code implementation
 - Architect/Designer: Architecture/solution design
-- Debugger: Problem identification
+- Debugger: Problem diagnosis
 - Analyst: Data analysis, performance evaluation
 
 **Team size:** 3-6 people (including you).
 
-### 3. How to Distribute Tasks?
+### 3. How to Assign Tasks?
 
-| Task Type | Distribution Method |
-|----------|----------|
+| Task Type | Assignment Method |
+|-----------|-------------------|
 | Simple, clear parallel tasks | Specify directly in prompt when spawning teammates |
 | Complex multi-step tasks | Use TaskCreate to create a checklist, let teammates claim tasks |
-| Hybrid | Assign core tasks, use checklist for exploratory tasks |
+| Mixed | Assign core tasks, use checklist for exploratory tasks |
 
 ---
 
@@ -79,9 +79,9 @@ Task with:
 - prompt: "[complete background + specific task + expected output]"
 ```
 
-**Key:** Teammates don't inherit conversation history; prompt must include complete context.
+**Key:** Teammates don't inherit conversation history; prompts must include complete context.
 
-### Step 3: Task Distribution & Monitoring
+### Step 3: Task Assignment & Monitoring
 
 **Method 1: Direct Assignment (simple tasks)**
 Specify tasks directly in the teammate's spawn prompt.
@@ -96,12 +96,15 @@ TaskUpdate(taskId, status=completed)          # Mark as completed
 
 **Task Dependencies:**
 ```
-TaskUpdate(taskId, addBlockedBy=[dependency task IDs])  # Set dependencies
+TaskUpdate(taskId, addBlockedBy=[dependency task ID])  # Set dependencies
 ```
 
 **Monitoring:**
 - `TaskList` - View all task statuses
 - Respond promptly when teammates report via `SendMessage`
+
+- Note: In most cases, the Leader needs to regularly check TaskList to ensure tasks aren't stuck, and adjust assignments or handle blockers in a timely manner.
+- Note: If different agents have different viewpoints or implementations, communicate promptly to avoid divergence.
 
 ### Step 4: Communication
 
@@ -114,17 +117,17 @@ SendMessage with:
 ```
 
 | Type | Purpose | Cost |
-|-----|-----|-----|
+|------|---------|------|
 | message | One-to-one | Low |
-| broadcast | Everyone | N× (N=number of teammates) |
+| broadcast | All members | N× (N=number of teammates) |
 | shutdown_request | Shut down teammate | - |
 
 **Prioritize message**, use broadcast sparingly.
 
-### Step 5: Wrap Up
+### Step 5: Wrap-up
 
 ```
-1. Reviewer reviews each role's output
+1. Reviewer reviews outputs from all roles
 2. Leader merges final results
 3. TeamDelete to clean up resources
 ```
@@ -134,7 +137,7 @@ SendMessage with:
 ## Tool Quick Reference
 
 | Tool | Purpose | Key Parameters |
-|------|-----|----------|
+|------|---------|----------------|
 | TeamCreate | Create team | team_name, agent_type |
 | Task | Spawn teammate | subagent_type, team_name, name, prompt |
 | TaskCreate | Create task | subject, description, activeForm |
@@ -146,18 +149,18 @@ SendMessage with:
 
 ---
 
-## Pitfall Prevention Guide
+## Pitfall Guide
 
-| Issue | Prevention |
-|------|------|
-| Teammates editing same file causing overwrites | Assign different file sets to each teammate |
-| Teammates going off track | Clearly define "shared assumptions" (common premises) before parallelization |
-| Tasks getting stuck | Regularly check TaskList, address blockers promptly |
+| Problem | Prevention |
+|---------|------------|
+| Teammates editing the same file causing overwrites | Assign different file sets to each teammate |
+| Teammates going off track | Clarify "shared assumptions" (common premises) before parallelizing |
+| Tasks getting stuck | Regularly check TaskList, handle blockers promptly |
 | Broadcast costs too high | Prioritize message, broadcast cost is N× |
 
 ---
 
-## Complete Example
+## Example
 
 **Scenario:** Multi-perspective security module review
 
@@ -166,27 +169,30 @@ SendMessage with:
 
 2. Spawn teammates (3 people):
    Task with subagent_type=general-purpose, team_name=audit, name=security-expert,
-        prompt="Review src/auth/ module. Shared assumptions: Using JWT authentication, session timeout 30min.
-               Check from security perspective: key management, injection risks, permission controls.
+        prompt="Review the src/auth/ module. Shared assumption: Using JWT authentication, 
+               session timeout 30min. Check from security perspective: key management, 
+               injection risks, permission controls. 
                Output: Issue list + severity ratings. Report to me when complete."
 
    Task with subagent_type=general-purpose, team_name=audit, name=performance-expert,
-        prompt="Review src/auth/ module. Same shared assumptions as above.
-               Check from performance perspective: query efficiency, caching strategy, concurrent processing.
-               Output: Bottleneck list + optimization recommendations. Report to me when complete."
+        prompt="Review the src/auth/ module. Same shared assumptions as above.
+               Check from performance perspective: query efficiency, caching strategy, 
+               concurrency handling.
+               Output: Bottleneck list + optimization suggestions. Report to me when complete."
 
    Task with subagent_type=general-purpose, team_name=audit, name=reviewer,
-        prompt="You are the Reviewer. After security-expert and performance-expert complete their work,
-               comprehensively review their outputs and provide final quality assessment."
+        prompt="You are the Reviewer. After security-expert and performance-expert complete 
+               their work, comprehensively review their outputs and provide a final quality 
+               assessment."
 
-3. Monitor & communicate:
+3. Monitor & Communicate:
    TaskList  # Check task status
-   # Respond with messages when teammates report:
+   # Respond when teammates report:
    SendMessage(type=message, recipient=security-expert,
-               content="Received your report, continue deep-dive into key rotation mechanism.",
-               summary="Request deeper check")
+               content="Received your report, continue deep diving into key rotation mechanism.",
+               summary="Request deep dive")
 
-4. Consolidate results, Reviewer provides final review
+4. Aggregate results, Reviewer performs final review
 
 5. TeamDelete()
 ```
@@ -195,6 +201,6 @@ SendMessage with:
 
 ## Limitations
 
-- One team per session, TeamDelete before creating new team
+- Must TeamDelete before creating a new team
 - Task status may get stuck, requires manual TaskUpdate
-- All teammates start from Leader permission mode
+- All teammates start with Leader permission mode
