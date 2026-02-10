@@ -1,5 +1,5 @@
 ---
-name: agent teams
+name: agent-teams
 description: Agent Teams enables multiple Claude instances to collaborate on complex tasks. Suitable for: parallel research reviews, multi-perspective code reviews, competitive hypothesis debugging, cross-layer feature development. Use this skill when tasks can be decomposed into independent subtasks, require multiple roles to explore simultaneously, or need discussion and coordination between teammates.
 ---
 
