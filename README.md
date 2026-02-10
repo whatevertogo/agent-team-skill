@@ -25,7 +25,7 @@ A skill that enables multiple Claude instances to collaborate on complex tasks.
 
 ```bash
 # Clone directly to skills directory
-git clone https://github.com/whatevetogo/agent-team-skill.git "%USERPROFILE%\.claude\skills\agent-teams"
+git clone https://github.com/whatevertogo/agent-team-skill.git "%USERPROFILE%\.claude\skills\agent-teams"
 ```
 
 ## Usage
